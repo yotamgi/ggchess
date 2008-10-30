@@ -4,6 +4,7 @@
 #include <string>
 #include "common\\d3dUtility.h"
 #include "BoardModelDescs.h"
+#include "common/D3dTextConsole.h"
 
 
 class ChessObject {
@@ -16,12 +17,14 @@ public:
 		IDirect3DDevice9* device,
 		ChessPart type = ChessPart(W, EMPTY));
 
-	void draw() const;
+	void draw(float timeDelta);
 
 	ChessPart getType() const { return m_type; }
 
 	void setPostion(const D3DXVECTOR3& pos) {m_pos = pos; }
 	D3DXVECTOR3 getPostion() const { return m_pos; }
+
+	void setMovement(const D3DXVECTOR3& to);
 
 	void emphasise(bool e) const { emphasised = e; } 
 	bool isEmphasised() const { return emphasised; }
@@ -33,6 +36,11 @@ private:
 	std::vector<IDirect3DTexture9*> m_objTexs;
 	std::vector<D3DXMATRIX>			m_objTransform;
 	std::vector<int>				m_objSubsets;
+
+	// The motion vars
+	bool		inMotion;
+	D3DXVECTOR3 finalPos;
+	float maxSpeed, startAcc, stopAcc, speed;
 
 	mutable bool emphasised; // this var can be changed even if the object is const.
 
