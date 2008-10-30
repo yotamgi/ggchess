@@ -19,27 +19,57 @@ m_objTransform(transform),
 m_objSubsets(subsets),
 m_device(device),
 m_type(type),
-emphasised(false)
+emphasised(false),
+inMotion(false)
 {
 	m_pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 }
 
-void ChessObject::draw() const {
-	D3DXMATRIX trans;
-	D3DXMatrixTranslation(&trans, m_pos.x, m_pos.y, m_pos.z);
+void ChessObject::setMovement(const D3DXVECTOR3& to) {
+	D3DXVECTOR3 delta = to - m_pos;
+	float length = D3DXVec3Length(&delta);
+	inMotion = true;
+	finalPos = to;
+	maxSpeed = length/2.0;
+	startAcc = length/2.0;
+	stopAcc =  length/4.0;
+	speed = 0.0f;
+}
+void ChessObject::draw(float timeDelta) {
 
 	std::vector<int>::const_iterator iter = m_objSubsets.begin();
 
 	for(; iter != m_objSubsets.end(); iter++)
 	{
-		D3DXMATRIX finalTrans = m_objTransform[*iter] * trans;
+		m_device->SetMaterial( &m_objMtrls[*iter] );
+		m_device->SetTexture(0, m_objTexs[*iter]);
+
+		if (inMotion) {
+			D3DXVECTOR3 delta = finalPos - m_pos, direction;
+			D3DXVec3Normalize(&direction, &delta);
+
+			// update the speed:
+			if(D3DXVec3Length(&delta) < (maxSpeed*maxSpeed/stopAcc)*0.49f) {
+				//speed -= timeDelta*stopAcc;
+				speed = D3DXVec3Length(&delta);
+			}else if (speed < maxSpeed) speed += timeDelta*startAcc;
+
+			// update the position
+			m_pos += timeDelta*direction*speed;
+			if (D3DXVec3Length(&delta) <= 0.2f)
+				inMotion = false;
+
+			
+		}
 
 		D3DXMATRIX i;
 		D3DXMatrixIdentity(&i);
 		m_device->SetTransform(D3DTS_WORLD, &i);
+
+		D3DXMATRIX trans;
+		D3DXMatrixTranslation(&trans, m_pos.x, m_pos.y, m_pos.z);
+		D3DXMATRIX finalTrans = m_objTransform[*iter] * trans;
 		m_device->SetTransform(D3DTS_WORLD, &finalTrans);
-		m_device->SetMaterial( &m_objMtrls[*iter] );
-		m_device->SetTexture(0, m_objTexs[*iter]);
 		m_objMesh->DrawSubset(*iter);
 	}
 }
@@ -175,7 +205,7 @@ void ChessBoard::emphasys(int y, int x, bool e) const {
 void ChessBoard::draw(float timeDelta) const {
 
 	m_device->SetLight(0, &normalLight);
-	m_board->draw();
+	m_board->draw(timeDelta);
 
 	// draw only the parts that are on the board
 	for (int x=0; x<CHESS_DIMENTION_X;x++) {
@@ -185,7 +215,7 @@ void ChessBoard::draw(float timeDelta) const {
 					m_device->SetLight(0, &enhancedLight);
 				else m_device->SetLight(0, &normalLight);
 				
-				m_partsOnBoard[y][x]->draw();
+				m_partsOnBoard[y][x]->draw(timeDelta);
 			}
 		}
 	}
@@ -277,7 +307,9 @@ void ChessBoard::makeMove(int from_y, int from_x, int to_y, int to_x) {
 		m_partsOnBoard[to_y][to_x] = m_partsOnBoard[from_y][from_x];
 		m_partsOnBoard[from_y][from_x] = NULL;
 	}
-	updatePartsPos();
+	m_partsOnBoard[to_y][to_x]->setMovement(
+		float(to_x)*m_desc.right + float(to_y)*m_desc.forward);
+	//updatePartsPos();
 }
 
 void ChessBoard::updatePartsPos() {
