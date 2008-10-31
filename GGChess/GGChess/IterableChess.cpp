@@ -74,7 +74,7 @@ bool IterableChess::makeMove(const ChessMove &m, bool record) {
 }
 
 void IterableChess::undoMove() {
-	UndoableMove lastMove = *movesStack.end();
+	UndoableMove lastMove = *(movesStack.end()-1);
 	lastMove.move.reverse();
 	makeMove(lastMove.move);
 
@@ -171,8 +171,10 @@ void IterableChess::pushBishopMoves(int posy, int posx,
 			desty+=iter->first; 
 			destx+=iter->second;
 		}
-		if (m_state[desty][destx].type != EMPTY && 
-					m_state[desty][destx].color == OtherColor(player))
+		if (destx < CHESS_DIMENTION_X && destx >= 0 && 
+			desty < CHESS_DIMENTION_Y && desty >= 0 && 
+			m_state[desty][destx].type != EMPTY && 
+			m_state[desty][destx].color == OtherColor(player))
 		{
 			moves.push_back(ChessMove(posy, posx, desty, destx));
 		}
@@ -199,8 +201,10 @@ void IterableChess::pushRookMoves(int posy, int posx,
 			desty+=iter->first; 
 			destx+=iter->second;
 		}
-		if (m_state[desty][destx].type != EMPTY && 
-					m_state[desty][destx].color == OtherColor(player))
+		if (destx < CHESS_DIMENTION_X && destx >= 0 && 
+			desty < CHESS_DIMENTION_Y && desty >= 0 && 
+			m_state[desty][destx].type != EMPTY && 
+			m_state[desty][destx].color == OtherColor(player))
 		{
 			moves.push_back(ChessMove(posy, posx, desty, destx));
 		}
@@ -228,8 +232,10 @@ void IterableChess::pushQueenMoves(int posy, int posx,
 			desty+=iter->first; 
 			destx+=iter->second;
 		}
-		if (m_state[desty][destx].type != EMPTY && 
-					m_state[desty][destx].color == OtherColor(player))
+		if (destx < CHESS_DIMENTION_X && destx >= 0 && 
+			desty < CHESS_DIMENTION_Y && desty >= 0 && 
+			m_state[desty][destx].type != EMPTY && 
+			m_state[desty][destx].color == OtherColor(player))
 		{
 			moves.push_back(ChessMove(posy, posx, desty, destx));
 		}
