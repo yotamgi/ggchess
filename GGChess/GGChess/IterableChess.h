@@ -2,13 +2,17 @@
 #define __ITERABLE_CHESS_H__
 
 #include <vector>
+#include <Windows.h>
 #include "ChessDefines.h"
 
 class IterableChess {
 public:
 
 	void setState(const ChessPart state[8][8]);
+	ChessPart** getState() const { return (ChessPart**)m_state; };
 	bool makeMove(const ChessMove& m);
+	void undoMove() { MessageBoxA(0, "IterableChess::undoMove Not implemented",
+										"Not Implemented.", MB_OK); }
 
 	std::vector<ChessMove> getAllMoves(ChessColor player) const;
 

@@ -24,6 +24,13 @@ struct ChessMove {
 		return ((r.from_x == from_x) && (r.from_y == from_y) && 
 				(r.to_x == to_x) && (r.to_y == to_y));
 	}
+	void reverse() {
+		int tmpx = from_x, tmpy = from_y;
+		from_y = to_y;
+		from_x = to_x;
+		to_y = tmpy;
+		to_x = tmpx;
+	}
 	int from_x;
 	int from_y;
 	int to_x;
