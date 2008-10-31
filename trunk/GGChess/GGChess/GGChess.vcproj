@@ -197,6 +197,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ComputerChessPlayer.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\IterableChess.cpp"
 				>
 			</File>
@@ -231,6 +235,10 @@
 				</File>
 				<File
 					RelativePath=".\ChessPlayer.h"
+					>
+				</File>
+				<File
+					RelativePath=".\ComputerChessPlayer.h"
 					>
 				</File>
 			</Filter>

@@ -15,7 +15,7 @@ public:
 
 	virtual void illigalMove() =0;
 
-private:
+protected:
 	ChessColor m_color;
 
 };
