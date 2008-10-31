@@ -10,9 +10,8 @@ public:
 
 	void setState(const ChessPart state[8][8]);
 	ChessPart** getState() const { return (ChessPart**)m_state; };
-	bool makeMove(const ChessMove& m);
-	void undoMove() { MessageBoxA(0, "IterableChess::undoMove Not implemented",
-										"Not Implemented.", MB_OK); }
+	bool makeMove(const ChessMove& m, bool record=true);
+	void undoMove();
 
 	std::vector<ChessMove> getAllMoves(ChessColor player) const;
 
@@ -20,6 +19,14 @@ public:
 										ChessColor player) const;
 
 private:
+
+	struct UndoableMove {
+		ChessMove move;
+		ChessPart died;
+		int diedy, diedx;
+	};
+
+	std::vector<UndoableMove> movesStack;
 
 	void pushPartMoves(int posx, int posy, 
 						ChessColor player, std::vector<ChessMove>& moves) const;
