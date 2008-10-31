@@ -49,8 +49,23 @@ void IterableChess::setState(const ChessPart state[CHESS_DIMENTION_Y][CHESS_DIME
 	}
 }
 
-bool IterableChess::makeMove(const ChessMove &m) {
+bool IterableChess::makeMove(const ChessMove &m, bool record) {
+	
 	if (m_state[m.from_y][m.from_x].type != EMPTY) {
+
+		// record the move
+		if (record) {
+			UndoableMove undoable;
+			undoable.move = m;
+			undoable.died = ChessPart(W, EMPTY);
+			if (m_state[m.to_y][m.to_x].type != EMPTY) {
+				undoable.died  = m_state[m.to_y][m.to_x];
+				undoable.diedy = m.to_y;
+				undoable.diedx = m.to_x;
+			}
+			movesStack.push_back(undoable);
+		}
+
 		m_state[m.to_y][m.to_x] = m_state[m.from_y][m.from_x] ;
 		m_state[m.from_y][m.from_x] = ChessPart(W, EMPTY);
 		return true;
@@ -58,8 +73,20 @@ bool IterableChess::makeMove(const ChessMove &m) {
 	else return false;
 }
 
+void IterableChess::undoMove() {
+	UndoableMove lastMove = *movesStack.end();
+	lastMove.move.reverse();
+	makeMove(lastMove.move);
+
+	if (lastMove.died.type != EMPTY) {
+		m_state[lastMove.diedy][lastMove.diedx] = lastMove.died;
+	}
+
+	movesStack.pop_back();
+}
+
 /**
- * push the move to the vecotr only if the the target checker is empty.
+ * push the move to the vector only if the the target checker is empty.
  */
 static void insert_move_if_empty(int from_y, int from_x, int to_y, int to_x,
 			std::vector<ChessMove> &moves, const ChessPart state[8][8]) 
