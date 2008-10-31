@@ -82,6 +82,7 @@ void SmartChessState::makeMove(const ChessMove &m, bool record) {
 
 	// than update the board
 	partsOnBoard[m.to_y][m.to_x] = partsOnBoard[m.from_y][m.from_x];
+	partsOnBoard[m.from_y][m.from_x] = NULL;
 
 	if (record) {
 		// insert the move into the moves Stack
