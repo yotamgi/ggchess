@@ -2,9 +2,11 @@
 #define  __COMPUTER_CHESS_PLAYER__
 
 #include <vector>
+#include "Common/D3dTextConsole.h"
 #include "ChessPlayer.h"
 #include "IterableChess.h"
 #include "ChessDefines.h"
+
 
 struct playerPartInfo {
 	playerPartInfo(){}
@@ -90,9 +92,9 @@ private:
 //
 class ComputerChessPlayer : public ChessPlayer {
 public:
-	ComputerChessPlayer();
+	ComputerChessPlayer() {}
 
-	virtual ChessMove play(const ChessLogic& board) =0;
+	virtual ChessMove play(const ChessLogic& board);
 
 	virtual void illigalMove();
 private:

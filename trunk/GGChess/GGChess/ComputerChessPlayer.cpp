@@ -51,6 +51,7 @@ SmartChessState::SmartChessState(ChessPart state[CHESS_DIMENTION_Y][CHESS_DIMENT
 	}
 	// calculate the initial mark.
 	combinedBlackMark = 0.0f;
+	combinedWhiteMark = 0.0f;
 	for (int i=0; i<32; i++) {
 		if (parts[i].alive) {
 			if (parts[i].part.color == W)
@@ -91,7 +92,7 @@ void SmartChessState::makeMove(const ChessMove &m, bool record) {
 }
 
 void SmartChessState::undoMove() {
-	undoableMove undoable = *movesStack.end();
+	undoableMove undoable = *(movesStack.end()-1);
 	undoable.move.reverse();
 	makeMove(undoable.move, false);
 
@@ -156,15 +157,22 @@ ChessMove ComputerChessPlayer::findBestMove(IterableChess& iterable,
 			float stateMark = markState(iterable, smartState);
 
 			// peek the worst state available,
-			if (worstStateMark < stateMark) 
+			if (worstStateMark > stateMark) 
 				worstStateMark = stateMark;
-			
+
+			//console->readLine();
 
 			// undo the move
 			iterable.undoMove();
 			smartState.undoMove();
 		}
 		if (bestWorstStateMark < worstStateMark) {
+			D3dTextConsole* console = D3dTextConsole::getTextOutputObject();
+			stringstream ss;
+			ss << worstStateMark << endl;
+			console->writeText(ss.str());
+
+			bestWorstStateMark = worstStateMark;
 			correspondingMove = *currMyMove;
 		}
 
@@ -178,14 +186,13 @@ ChessMove ComputerChessPlayer::findBestMove(IterableChess& iterable,
 float ComputerChessPlayer::markState(IterableChess& chess, SmartChessState& state) const
 {
 	// check if there is a matt going on:
-// 	playerPartInfo king = state.getKing(m_color);
-// 	if (chess.getPartMoves(king.y, king.x, m_color).size() == 0)  
-// 		return -100.0f;
+ 	playerPartInfo king = state.getKing(m_color);
+ 	if (king.alive == false)  
+ 		return -100.0f;
 	playerPartInfo hisKing = state.getKing(OtherColor(m_color));
 	if (hisKing.alive == false) 
 		return 100.0f;
 
-	return state.getPartsMark(m_color) - state.getPartsMark(OtherColor(m_color));
-
-	return 0.0f;
+	float mark = state.getPartsMark(m_color) - state.getPartsMark(OtherColor(m_color));
+	return mark;
 }
