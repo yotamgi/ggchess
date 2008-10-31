@@ -129,7 +129,10 @@ void ComputerChessPlayer::illigalMove() {
 }
 
 ChessMove ComputerChessPlayer::findBestMove(IterableChess& iterable, 
-													SmartChessState& smartState){
+													SmartChessState& smartState)
+{
+	float bestWorstStateMark = -101.0f;
+	ChessMove correspondingMove;
 
 	// for every move I can do:
 	vector<ChessMove> myMoves= iterable.getAllMoves(m_color);
@@ -138,32 +141,51 @@ ChessMove ComputerChessPlayer::findBestMove(IterableChess& iterable,
 		iterable.makeMove(*currMyMove);
 		smartState.makeMove(*currMyMove);
 
+		float worstStateMark = 101.0f;
+
 		// for every move he can do:
 		vector<ChessMove> hisMoves = iterable.getAllMoves(OtherColor(m_color));
 		vector<ChessMove>::iterator currHisMove = hisMoves.begin();
 		for (; currHisMove!=hisMoves.end();currHisMove++) {
+
+			// make the  move
 			iterable.makeMove(*currHisMove);
 			smartState.makeMove(*currHisMove);
 
-			markState(iterable, smartState);
+			// mark it
+			float stateMark = markState(iterable, smartState);
 
+			// peek the worst state available,
+			if (worstStateMark < stateMark) 
+				worstStateMark = stateMark;
+			
+
+			// undo the move
 			iterable.undoMove();
 			smartState.undoMove();
 		}
+		if (bestWorstStateMark < worstStateMark) {
+			correspondingMove = *currMyMove;
+		}
+
 		iterable.undoMove();
 		smartState.undoMove();
 	}
-	return ChessMove();
+
+	return correspondingMove;
 }
 
 float ComputerChessPlayer::markState(IterableChess& chess, SmartChessState& state) const
 {
 	// check if there is a matt going on:
-	playerPartInfo king = state.getKing(m_color);
-	if (chess.getPartMoves(king.y, king.x, m_color).size() == 0)  
-		return 0.0f;
-	if (chess.getPartMoves(king.y, king.x, OtherColor(m_color)).size() == 0) 
+// 	playerPartInfo king = state.getKing(m_color);
+// 	if (chess.getPartMoves(king.y, king.x, m_color).size() == 0)  
+// 		return -100.0f;
+	playerPartInfo hisKing = state.getKing(OtherColor(m_color));
+	if (hisKing.alive == false) 
 		return 100.0f;
+
+	return state.getPartsMark(m_color) - state.getPartsMark(OtherColor(m_color));
 
 	return 0.0f;
 }

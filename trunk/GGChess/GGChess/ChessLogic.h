@@ -23,7 +23,7 @@ public:
 
 private:
 	
-	ChessBoard* m_board;
+	ChessBoard*	m_board;
 	IterableChess m_ic;
 
 };
