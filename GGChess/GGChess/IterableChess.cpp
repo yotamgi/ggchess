@@ -136,13 +136,13 @@ void IterableChess::pushPawnMoves(int posy, int posx,
 		insert_move_if_empty(posy, posx, posy+1*direction, posx, moves, m_state);
 
 		// check the possibility of eating
-		if (posx >= 1) {
+		if (posx < CHESS_DIMENTION_X-1) {
 			if (m_state[posy+1*direction][posx+1].color == OtherColor(player) 
 								&& m_state[posy+1*direction][posx+1].type != EMPTY) {
 				moves.push_back(ChessMove(posy, posx, posy+1*direction, posx+1));
 			}
 		}
-		if (posx < CHESS_DIMENTION_X-1) {
+		if (posx >= 1) {
 			if (m_state[posy+1*direction][posx-1].color == OtherColor(player)
 								&& m_state[posy+1*direction][posx-1].type != EMPTY) {
 				moves.push_back(ChessMove(posy, posx, posy+1*direction, posx-1));
