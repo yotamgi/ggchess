@@ -70,6 +70,12 @@ public:
 		else return parts[31];
 	}
 
+	/***
+	 * Verifies that the state is the same as the sent state.
+	 * Used for debugging.
+	 */
+	bool verifyState(ChessPart**  const state) const;
+
 private:
 
 	float combinedWhiteMark;
