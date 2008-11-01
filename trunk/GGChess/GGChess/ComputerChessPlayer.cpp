@@ -111,6 +111,20 @@ void SmartChessState::undoMove() {
 	movesStack.pop_back();
 }
 
+bool SmartChessState::verifyState(ChessPart** const state) const {
+	for (int y=0; y<CHESS_DIMENTION_Y; y++) {
+		for (int x=0;x<CHESS_DIMENTION_X; x++) { 
+			if (partsOnBoard[y][x] == NULL) {
+				if (state[y][x].type == EMPTY) 
+					return false;
+			}
+			else if (state[y][x].type != partsOnBoard[y][x]->part.type)
+				return false;
+		}
+	}
+	return true;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // ComputerChessPlayer funcs
 //
@@ -132,6 +146,7 @@ void ComputerChessPlayer::illigalMove() {
 ChessMove ComputerChessPlayer::findBestMove(IterableChess& iterable, 
 													SmartChessState& smartState)
 {
+	D3dTextConsole* console = D3dTextConsole::getTextOutputObject();
 	float bestWorstStateMark = -101.0f;
 	ChessMove correspondingMove;
 
@@ -160,14 +175,11 @@ ChessMove ComputerChessPlayer::findBestMove(IterableChess& iterable,
 			if (worstStateMark > stateMark) 
 				worstStateMark = stateMark;
 
-			//console->readLine();
-
 			// undo the move
 			iterable.undoMove();
 			smartState.undoMove();
 		}
 		if (bestWorstStateMark < worstStateMark) {
-			D3dTextConsole* console = D3dTextConsole::getTextOutputObject();
 			stringstream ss;
 			ss << worstStateMark << endl;
 			console->writeText(ss.str());
@@ -178,6 +190,9 @@ ChessMove ComputerChessPlayer::findBestMove(IterableChess& iterable,
 
 		iterable.undoMove();
 		smartState.undoMove();
+/*		if (!smartState.verifyState(iterable.getState())) {
+			console->writeText("NOT GOOD!");
+		}*/
 	}
 
 	return correspondingMove;
