@@ -76,7 +76,7 @@ bool IterableChess::makeMove(const ChessMove &m, bool record) {
 void IterableChess::undoMove() {
 	UndoableMove lastMove = *(movesStack.end()-1);
 	lastMove.move.reverse();
-	makeMove(lastMove.move);
+	makeMove(lastMove.move, false);
 
 	if (lastMove.died.type != EMPTY) {
 		m_state[lastMove.diedy][lastMove.diedx] = lastMove.died;
