@@ -19,14 +19,14 @@ SmartChessState::SmartChessState(ChessPart state[CHESS_DIMENTION_Y][CHESS_DIMENT
 	for (i=10; i<12; i++) parts[i] = playerPartInfo(ChessPart(W, KNIGHT), 3.0f);
 	for (i=12; i<14; i++) parts[i] = playerPartInfo(ChessPart(W, ROOK),   5.0f);
 	for (i=14; i<15; i++) parts[i] = playerPartInfo(ChessPart(W, QUEEN),  10.0f);
-	for (i=15; i<16; i++) parts[i] = playerPartInfo(ChessPart(W, QUEEN),  10.0f);
+	for (i=15; i<16; i++) parts[i] = playerPartInfo(ChessPart(W, KING),  10.0f);
 
 	for (i=16; i<24; i++) parts[i] = playerPartInfo(ChessPart(B, PAWN),   1.0f);
 	for (i=24; i<26; i++) parts[i] = playerPartInfo(ChessPart(B, BISHOP), 3.0f);
 	for (i=26; i<28; i++) parts[i] = playerPartInfo(ChessPart(B, KNIGHT), 3.0f);
 	for (i=28; i<30; i++) parts[i] = playerPartInfo(ChessPart(B, ROOK),   5.0f);
 	for (i=30; i<31; i++) parts[i] = playerPartInfo(ChessPart(B, QUEEN),  10.0f);
-	for (i=31; i<32; i++) parts[i] = playerPartInfo(ChessPart(B, QUEEN),  10.0f);
+	for (i=31; i<32; i++) parts[i] = playerPartInfo(ChessPart(B, KING),  10.0f);
 
 	// make the current state
 	int wPawnIndex=0 , wBishopIndex=8 , wKnightIndex=10, wRookIndex=12, wQueenIndex=14,wKingIndex=15; 
@@ -111,11 +111,11 @@ void SmartChessState::undoMove() {
 	movesStack.pop_back();
 }
 
-bool SmartChessState::verifyState(ChessPart** const state) const {
+bool SmartChessState::verifyState(ChessPart state[CHESS_DIMENTION_Y][CHESS_DIMENTION_X]) const {
 	for (int y=0; y<CHESS_DIMENTION_Y; y++) {
 		for (int x=0;x<CHESS_DIMENTION_X; x++) { 
 			if (partsOnBoard[y][x] == NULL) {
-				if (state[y][x].type == EMPTY) 
+				if (state[y][x].type != EMPTY) 
 					return false;
 			}
 			else if (state[y][x].type != partsOnBoard[y][x]->part.type)
@@ -136,7 +136,18 @@ ChessMove ComputerChessPlayer::play(const ChessLogic& board) {
 	chess.setState(state);
 	SmartChessState smartState(state);
 
+	D3dTextConsole* console = D3dTextConsole::getTextOutputObject();
+	if (!smartState.verifyState(state)) {
+		console->writeText("Initializing Failed!\n");
+	}
+
 	return findBestMove(chess, smartState);
+
+	// check that there were no mistake
+	chess.fillGameState(state);
+	if (!smartState.verifyState(state)) {
+		console->writeText("Finiding move has a problem!\n");
+	}
 }
 
 void ComputerChessPlayer::illigalMove() {
@@ -190,10 +201,8 @@ ChessMove ComputerChessPlayer::findBestMove(IterableChess& iterable,
 
 		iterable.undoMove();
 		smartState.undoMove();
-/*		if (!smartState.verifyState(iterable.getState())) {
-			console->writeText("NOT GOOD!");
-		}*/
 	}
+
 
 	return correspondingMove;
 }
@@ -203,11 +212,15 @@ float ComputerChessPlayer::markState(IterableChess& chess, SmartChessState& stat
 	// check if there is a matt going on:
  	playerPartInfo king = state.getKing(m_color);
  	if (king.alive == false)  
- 		return -100.0f;
+ 		return 0.001f;
 	playerPartInfo hisKing = state.getKing(OtherColor(m_color));
 	if (hisKing.alive == false) 
 		return 100.0f;
 
-	float mark = state.getPartsMark(m_color) - state.getPartsMark(OtherColor(m_color));
+	// if not, check the parts state
+	float mark = state.getPartsMark(m_color) / state.getPartsMark(OtherColor(m_color));
+	if (mark > 100.0f) {
+		mark = 100.0f;
+	}
 	return mark;
 }
