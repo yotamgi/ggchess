@@ -74,7 +74,7 @@ public:
 	 * Verifies that the state is the same as the sent state.
 	 * Used for debugging.
 	 */
-	bool verifyState(ChessPart**  const state) const;
+	bool verifyState(ChessPart state[CHESS_DIMENTION_Y][CHESS_DIMENTION_X]) const;
 
 private:
 
