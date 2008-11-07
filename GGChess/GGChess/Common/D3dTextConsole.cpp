@@ -116,10 +116,10 @@ void D3dTextConsole::draw(float timeDelta) {
 		m_text = "";
 		m_stream.str("");
 	}
-	if ((unsigned int)size.cx >= vp.Width) {
+/*	if ((unsigned int)size.cx >= vp.Width) {
 		flushFromStream();
 		m_text += "\n";
-	}
+	}*/
 
 
 	// draw
