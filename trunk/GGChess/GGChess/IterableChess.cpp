@@ -49,6 +49,14 @@ void IterableChess::setState(const ChessPart state[CHESS_DIMENTION_Y][CHESS_DIME
 	}
 }
 
+void IterableChess::fillGameState(ChessPart state[CHESS_DIMENTION_Y][CHESS_DIMENTION_X]) const
+{
+	for (int y=0; y<CHESS_DIMENTION_Y; y++) {
+		for (int x=0; x<CHESS_DIMENTION_X;x++) {
+			state[y][x] = m_state[y][x];
+		}
+	}
+}
 bool IterableChess::makeMove(const ChessMove &m, bool record) {
 	
 	if (m_state[m.from_y][m.from_x].type != EMPTY) {
