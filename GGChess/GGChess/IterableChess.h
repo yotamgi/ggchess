@@ -9,7 +9,9 @@ class IterableChess {
 public:
 
 	void setState(const ChessPart state[8][8]);
-	ChessPart** getState() const { return (ChessPart**)m_state; };
+
+	void fillGameState(ChessPart state[CHESS_DIMENTION_Y][CHESS_DIMENTION_X]) const;
+
 	bool makeMove(const ChessMove& m, bool record=true);
 	void undoMove();
 
