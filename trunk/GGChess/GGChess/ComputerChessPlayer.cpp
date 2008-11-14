@@ -19,14 +19,14 @@ SmartChessState::SmartChessState(ChessPart state[CHESS_DIMENTION_Y][CHESS_DIMENT
 	for (i=10; i<12; i++) parts[i] = playerPartInfo(ChessPart(W, KNIGHT), 3.0f);
 	for (i=12; i<14; i++) parts[i] = playerPartInfo(ChessPart(W, ROOK),   5.0f);
 	for (i=14; i<15; i++) parts[i] = playerPartInfo(ChessPart(W, QUEEN),  10.0f);
-	for (i=15; i<16; i++) parts[i] = playerPartInfo(ChessPart(W, KING),  10.0f);
+	for (i=15; i<16; i++) parts[i] = playerPartInfo(ChessPart(W, KING), 100.0f);
 
 	for (i=16; i<24; i++) parts[i] = playerPartInfo(ChessPart(B, PAWN),   1.0f);
 	for (i=24; i<26; i++) parts[i] = playerPartInfo(ChessPart(B, BISHOP), 3.0f);
 	for (i=26; i<28; i++) parts[i] = playerPartInfo(ChessPart(B, KNIGHT), 3.0f);
 	for (i=28; i<30; i++) parts[i] = playerPartInfo(ChessPart(B, ROOK),   5.0f);
-	for (i=30; i<31; i++) parts[i] = playerPartInfo(ChessPart(B, QUEEN),  10.0f);
-	for (i=31; i<32; i++) parts[i] = playerPartInfo(ChessPart(B, KING),  10.0f);
+	for (i=30; i<31; i++) parts[i] = playerPartInfo(ChessPart(B, QUEEN), 10.0f);
+	for (i=31; i<32; i++) parts[i] = playerPartInfo(ChessPart(B, KING), 100.0f);
 
 	// make the current state
 	int wPawnIndex=0 , wBishopIndex=8 , wKnightIndex=10, wRookIndex=12, wQueenIndex=14,wKingIndex=15; 
@@ -141,84 +141,75 @@ ChessMove ComputerChessPlayer::play(const ChessLogic& board) {
 		console->writeText("Initializing Failed!\n");
 	}
 
-	return findBestMove(chess, smartState);
+	ChessMove m;//= findBestMove(chess, smartState);
+	float mark = findBestMove(m_color, chess, smartState, m, 5);
+	
+	console->stream() << "The move mark is " << mark << std::endl;
 
 	// check that there were no mistake
 	chess.fillGameState(state);
 	if (!smartState.verifyState(state)) {
 		console->writeText("Finiding move has a problem!\n");
 	}
+
+	return m;
 }
 
 void ComputerChessPlayer::illigalMove() {
 	MessageBoxA(0, "Computer made an illegal move.", "Unbelievable...", MB_OK);	
 }
 
-ChessMove ComputerChessPlayer::findBestMove(IterableChess& iterable, 
-													SmartChessState& smartState)
+float ComputerChessPlayer::findBestMove(ChessColor color, IterableChess& iterable, 
+				SmartChessState& smartState, ChessMove &ans, int level)
 {
 	D3dTextConsole* console = D3dTextConsole::getTextOutputObject();
-	float bestWorstStateMark = -101.0f;
-	ChessMove correspondingMove;
+	float bestStateMark = -101.0f;
 
 	// for every move I can do:
-	vector<ChessMove> myMoves= iterable.getAllMoves(m_color);
+	vector<ChessMove> myMoves= iterable.getAllMoves(color);
 	vector<ChessMove>::iterator currMyMove = myMoves.begin();
 	for (; currMyMove!=myMoves.end();currMyMove++) {
-		iterable.makeMove(*currMyMove);
 		smartState.makeMove(*currMyMove);
 
-		float worstStateMark = 101.0f;
+		float stateMark;
 
-		// for every move he can do:
-		vector<ChessMove> hisMoves = iterable.getAllMoves(OtherColor(m_color));
-		vector<ChessMove>::iterator currHisMove = hisMoves.begin();
-		for (; currHisMove!=hisMoves.end();currHisMove++) {
-
-			// make the  move
-			iterable.makeMove(*currHisMove);
-			smartState.makeMove(*currHisMove);
-
+		if (level <= 1) {
 			// mark it
-			float stateMark = markState(iterable, smartState);
-
-			// peek the worst state available,
-			if (worstStateMark > stateMark) 
-				worstStateMark = stateMark;
-
-			// undo the move
+			stateMark = markState(smartState, color);
+		} else {
+			iterable.makeMove(*currMyMove);
+			// go down recursively
+			ChessMove m;
+			stateMark = findBestMove(OtherColor(color), iterable, smartState,m,level-1);
+			stateMark = 1.0f / stateMark;
 			iterable.undoMove();
-			smartState.undoMove();
-		}
-		if (bestWorstStateMark < worstStateMark) {
-			stringstream ss;
-			ss << worstStateMark << endl;
-			console->writeText(ss.str());
-
-			bestWorstStateMark = worstStateMark;
-			correspondingMove = *currMyMove;
 		}
 
-		iterable.undoMove();
+		// peek the best state available,
+		if (stateMark > bestStateMark) {
+			bestStateMark = stateMark;
+			ans = *currMyMove;
+		}
+		// undo the move
 		smartState.undoMove();
 	}
 
-
-	return correspondingMove;
+	return bestStateMark;
 }
 
-float ComputerChessPlayer::markState(IterableChess& chess, SmartChessState& state) const
+float ComputerChessPlayer::markState(
+				SmartChessState& state, ChessColor color) const
 {
-	// check if there is a matt going on:
- 	playerPartInfo king = state.getKing(m_color);
+/*	// check if there is a matt going on:
+ 	playerPartInfo king = state.getKing(color);
  	if (king.alive == false)  
  		return 0.001f;
-	playerPartInfo hisKing = state.getKing(OtherColor(m_color));
+	playerPartInfo hisKing = state.getKing(OtherColor(color));
 	if (hisKing.alive == false) 
-		return 100.0f;
+		return 100.0f;*/
 
 	// if not, check the parts state
-	float mark = state.getPartsMark(m_color) / state.getPartsMark(OtherColor(m_color));
+	float mark = state.getPartsMark(color) / state.getPartsMark(OtherColor(color));
 	if (mark > 100.0f) {
 		mark = 100.0f;
 	}

@@ -105,9 +105,11 @@ public:
 	virtual void illigalMove();
 private:
 
-	ChessMove findBestMove(IterableChess& chess, SmartChessState& smartState);
+	float findBestMove(ChessColor color, IterableChess& iterable, SmartChessState& smartState, 
+		ChessMove &ans, int level);
 
-	float markState(IterableChess& chess, SmartChessState& state) const;	
+
+	float markState(SmartChessState& state, ChessColor color) const;	
 };
 
 
