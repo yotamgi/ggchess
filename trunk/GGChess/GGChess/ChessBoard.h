@@ -3,6 +3,7 @@
 
 #include <string>
 #include "common\\d3dUtility.h"
+#include "common/EffectMesh.h"
 #include "BoardModelDescs.h"
 #include "common/D3dTextConsole.h"
 
@@ -17,7 +18,17 @@ public:
 		IDirect3DDevice9* device,
 		ChessPart type = ChessPart(W, EMPTY));
 
+	ChessObject(d3d::IEffectMesh* effect_obj,
+		ID3DXMesh* object,
+		std::vector<D3DMATERIAL9> materials, 
+		std::vector<IDirect3DTexture9*> texs,
+		std::vector<D3DXMATRIX> transform,
+		std::vector<int> subsets,
+		IDirect3DDevice9* device,
+		ChessPart type = ChessPart(W, EMPTY));
+
 	void draw(float timeDelta);
+	void drawWithEffect(float timeDelta);
 
 	ChessPart getType() const { return m_type; }
 
@@ -31,11 +42,14 @@ public:
 
 private:
 
+	void update(float timeDelta);
+
 	ID3DXMesh*						m_objMesh;
 	std::vector<D3DMATERIAL9>		m_objMtrls;
 	std::vector<IDirect3DTexture9*> m_objTexs;
 	std::vector<D3DXMATRIX>			m_objTransform;
 	std::vector<int>				m_objSubsets;
+	d3d::IEffectMesh*				m_effect_obj;
 
 	// The motion vars
 	bool		inMotion;
@@ -111,14 +125,25 @@ private:
 	ID3DXMesh*						m_chessMesh;
 	std::vector<D3DMATERIAL9>		m_chessMtrls;
 	std::vector<IDirect3DTexture9*> m_chessTexs;
+	d3d::IEffectMesh*				m_effChessMesh;
 
 	/** The lights */
-	D3DLIGHT9 normalLight;
-	D3DLIGHT9 enhancedLight;
+/*	D3DLIGHT9 normalLight;
+	D3DLIGHT9 enhancedLight;/**/
 
 	/** The Board Description struct, filled with data. */
 	const BoardDesc m_desc;
 
+//	/** The Effect File dat */
+//	ID3DXEffect* m_effect;
+
+	D3DXHANDLE m_RegTechHandle, m_EmphTechHandle;
+	D3DXHANDLE m_WorldMatrixHandle;
+	D3DXHANDLE m_ViewMatrixHandle;
+	D3DXHANDLE m_ProjMatrixHandle;
+	D3DXHANDLE m_TexHandle;
+	
+	/** The Direct3D 9.0c Device */
 	IDirect3DDevice9* m_device;
 };
 

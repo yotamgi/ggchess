@@ -25,52 +25,102 @@ inMotion(false)
 	m_pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 }
 
+ChessObject::ChessObject(d3d::IEffectMesh* effect_obj,
+						 ID3DXMesh *object, 
+						 std::vector<D3DMATERIAL9> materials, 
+						 std::vector<IDirect3DTexture9*> texs, 
+						 std::vector<D3DXMATRIX> transform,
+						 std::vector<int> subsets,
+						 IDirect3DDevice9* device,			
+						 ChessPart type):
+m_effect_obj(effect_obj),
+m_objMesh(object),
+m_objMtrls(materials),
+m_objTexs(texs),
+m_objTransform(transform),
+m_objSubsets(subsets),
+m_device(device),
+m_type(type),
+emphasised(false),
+inMotion(false)
+{
+	m_pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+}
+
 void ChessObject::setMovement(const D3DXVECTOR3& to) {
 	D3DXVECTOR3 delta = to - m_pos;
 	float length = D3DXVec3Length(&delta);
 	inMotion = true;
 	finalPos = to;
-	maxSpeed = length/2.0;
-	startAcc = length/2.0;
-	stopAcc =  length/4.0;
+	maxSpeed = length;
+	startAcc = length;
+	stopAcc =  length*1.3f;
 	speed = 0.0f;
 }
+
 void ChessObject::draw(float timeDelta) {
 
-	std::vector<int>::const_iterator iter = m_objSubsets.begin();
+	update(timeDelta);
 
+	// calulate the per-object transform
+	D3DXMATRIX trans;
+	D3DXMatrixTranslation(&trans, m_pos.x, m_pos.y, m_pos.z);
+
+	// for every subset
+	std::vector<int>::const_iterator iter = m_objSubsets.begin();
 	for(; iter != m_objSubsets.end(); iter++)
 	{
+		// calculate the per-subset transform
+		D3DXMATRIX finalTrans = m_objTransform[*iter] * trans;
+
+		// set the device param.
+		m_device->SetTransform(D3DTS_WORLD, &finalTrans);
 		m_device->SetMaterial( &m_objMtrls[*iter] );
 		m_device->SetTexture(0, m_objTexs[*iter]);
 
-		if (inMotion) {
-			D3DXVECTOR3 delta = finalPos - m_pos, direction;
-			D3DXVec3Normalize(&direction, &delta);
+		// draw!
+		m_objMesh->DrawSubset(*iter);
+	}
+}
+void ChessObject::drawWithEffect(float timeDelta)
+{
 
-			// update the speed:
-			if(D3DXVec3Length(&delta) < (maxSpeed*maxSpeed/stopAcc)*0.49f) {
-				//speed -= timeDelta*stopAcc;
-				speed = D3DXVec3Length(&delta);
-			}else if (speed < maxSpeed) speed += timeDelta*startAcc;
+	update(timeDelta);
 
-			// update the position
-			m_pos += timeDelta*direction*speed;
-			if (D3DXVec3Length(&delta) <= 0.2f)
-				inMotion = false;
+	// calulate the per-object transform
+	D3DXMATRIX trans;
+	D3DXMatrixTranslation(&trans, m_pos.x, m_pos.y, m_pos.z);
 
-			
-		}
-
-		D3DXMATRIX i;
-		D3DXMatrixIdentity(&i);
-		m_device->SetTransform(D3DTS_WORLD, &i);
-
-		D3DXMATRIX trans;
-		D3DXMatrixTranslation(&trans, m_pos.x, m_pos.y, m_pos.z);
+	// for every subset
+	std::vector<int>::const_iterator iter = m_objSubsets.begin();
+	for(; iter != m_objSubsets.end(); iter++)
+	{
+		// calculate the per-subset transform
 		D3DXMATRIX finalTrans = m_objTransform[*iter] * trans;
 		m_device->SetTransform(D3DTS_WORLD, &finalTrans);
-		m_objMesh->DrawSubset(*iter);
+
+		// draw!
+		m_effect_obj->drawSubset(*iter);
+	}
+}
+
+
+void ChessObject::update(float timeDelta) {
+
+	if (inMotion) {
+		D3DXVECTOR3 delta = finalPos - m_pos, direction;
+		D3DXVec3Normalize(&direction, &delta);
+
+		// update the speed:
+		if(D3DXVec3Length(&delta) < (maxSpeed*maxSpeed/stopAcc)*0.49f) {
+			//speed -= timeDelta*stopAcc;
+			speed = D3DXVec3Length(&delta);
+		}else if (speed < maxSpeed) speed += timeDelta*startAcc;
+
+		// update the position
+		m_pos += timeDelta*direction*speed;
+		if (D3DXVec3Length(&delta) <= 0.2f)
+			inMotion = false;		
 	}
 }
 
@@ -92,6 +142,7 @@ void ChessBoard::init() {
 	d3d::LoadX(m_device, m_desc.XFileName.c_str(), &m_chessMesh, 
 										   &m_chessMtrls, 
 										   &m_chessTexs);
+
 	std::vector<IDirect3DTexture9*> textures;
 	for (unsigned int i=0; i<m_desc.TexturesFileNames.size(); i++){
 		textures.push_back(NULL);
@@ -111,89 +162,64 @@ void ChessBoard::init() {
 		}
 	}
 
+	m_effChessMesh = new d3d::StdEffectMesh(m_chessMesh, 
+											"..\\effect.fx", 
+											m_chessTexs);
+	m_effChessMesh->init(m_device);
+
+
 	// installize the parts
 	for (int i=0; i<PAWN_NUMBER; i++) {
-		m_pawns[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_pawns[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.PawnSubsets[i], m_device, ChessPart(W,PAWN));
 	}
 	for (int i=PAWN_NUMBER; i<PAWN_NUMBER*2; i++) {
-		m_pawns[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_pawns[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.PawnSubsets[i], m_device,ChessPart(B,PAWN));
 	}
 	for (int i=0; i<BISHOP_NUMBER; i++) {
-		m_bishops[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_bishops[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.BishopSubsets[i], m_device, ChessPart(W,BISHOP));
 	}
 	for (int i=BISHOP_NUMBER; i<BISHOP_NUMBER*2; i++) {
-		m_bishops[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_bishops[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.BishopSubsets[i], m_device, ChessPart(B,BISHOP));
 	}
 	for (int i=0; i<KNIGHT_NUMBER; i++) {
-		m_knights[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_knights[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.KnightSubsets[i], m_device, ChessPart(W,KNIGHT));
 	}
 	for (int i=KNIGHT_NUMBER; i<KNIGHT_NUMBER*2; i++) {
-		m_knights[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_knights[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.KnightSubsets[i], m_device, ChessPart(B,KNIGHT));
 	}
 	for (int i=0; i<ROOK_NUMBER; i++) {
-		m_rooks[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_rooks[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.RookSubsets[i], m_device, ChessPart(W,ROOK));
 	}
 	for (int i=ROOK_NUMBER; i<ROOK_NUMBER*2; i++) {
-		m_rooks[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_rooks[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.RookSubsets[i], m_device, ChessPart(B,ROOK));
 	}
 	for (int i=0; i<KING_NUMBER; i++) {
-		m_kings[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_kings[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.KingSubsets[i], m_device, ChessPart(W,KING));
 	}
 	for (int i=KING_NUMBER; i<KING_NUMBER*2; i++) {
-		m_kings[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_kings[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.KingSubsets[i], m_device, ChessPart(B,KING));
 	}
 	for (int i=0; i<QUEEN_NUMBER; i++) {
-		m_queens[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_queens[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.QueenSubsets[i], m_device, ChessPart(W,QUEEN));
 	}
 	for (int i=QUEEN_NUMBER; i<QUEEN_NUMBER*2; i++) {
-		m_queens[i] = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+		m_queens[i] = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.QueenSubsets[i], m_device, ChessPart(B,QUEEN));
 	}
 
-	m_board = new ChessObject(m_chessMesh, m_chessMtrls, m_chessTexs,
+	m_board = new ChessObject(m_effChessMesh, m_chessMesh, m_chessMtrls, m_chessTexs,
 			m_desc.subsetsTransform, m_desc.BoardSubsets, m_device);
-
-	//
-	// Set the light
-	//
-	D3DXVECTOR3 pos(50.0f, 100.0f, 100.0f);
-	D3DXVECTOR3 dir(-5.0f, -10.0f, -10.0f);
-	D3DXCOLOR col = d3d::WHITE*0.75f;//(1.0f, 1.0f, 1.0f, 10.0f);
-
-	::ZeroMemory(&normalLight, sizeof(normalLight));
-
-	normalLight.Type      = D3DLIGHT_SPOT;
-	normalLight.Ambient   = col* 0.4f;
-	normalLight.Diffuse   = col;
-	normalLight.Specular  = d3d::BLUE * 0.07f + col*0.4f;
-	normalLight.Position  = pos;
-	normalLight.Direction = dir;
-	normalLight.Range        = 1000.0f;
-	normalLight.Falloff      = 1.0f;
-	normalLight.Attenuation0 = 1.0f;
-	normalLight.Attenuation1 = 0.0f;
-	normalLight.Attenuation2 = 0.0f;
-	normalLight.Theta        = 1.5f;
-	normalLight.Phi          = 2.5f;
-
-	col = d3d::WHITE*0.7f + d3d::YELLOW * 0.3f;
-	enhancedLight = d3d::InitDirectionalLight(&dir, &col);
-
-	m_device->LightEnable(0, true);
-	m_device->SetRenderState(D3DRS_NORMALIZENORMALS, true);
-	m_device->SetRenderState(D3DRS_SPECULARENABLE, true);
-
 }
 
 void ChessBoard::emphasys(int y, int x, bool e) const {
@@ -204,18 +230,22 @@ void ChessBoard::emphasys(int y, int x, bool e) const {
 
 void ChessBoard::draw(float timeDelta) const {
 
-	m_device->SetLight(0, &normalLight);
-	m_board->draw(timeDelta);
+	m_effChessMesh->setTechnique("FixedPipeline");
+
+	m_board->drawWithEffect(timeDelta);
 
 	// draw only the parts that are on the board
 	for (int x=0; x<CHESS_DIMENTION_X;x++) {
 		for (int y=0; y<CHESS_DIMENTION_Y;y++) {
 			if( m_partsOnBoard[y][x])  {
+
 				if (m_partsOnBoard[y][x]->isEmphasised()) 
-					m_device->SetLight(0, &enhancedLight);
-				else m_device->SetLight(0, &normalLight);
-				
-				m_partsOnBoard[y][x]->draw(timeDelta);
+					m_effChessMesh->setTechnique("EmphasizedFixedPipeline");
+				else m_effChessMesh->setTechnique("FixedPipeline");
+
+				//m_partsOnBoard[y][x]->drawWithEffect(timeDelta, m_effect, 
+				//	m_WorldMatrixHandle, m_TexHandle);
+				m_partsOnBoard[y][x]->drawWithEffect(timeDelta); 
 			}
 		}
 	}
@@ -323,3 +353,4 @@ void ChessBoard::updatePartsPos() {
 		}
 	}
 }
+
