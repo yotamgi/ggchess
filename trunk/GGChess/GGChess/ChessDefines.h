@@ -61,14 +61,14 @@ struct ChessPart {
 
 
 const ChessPart InitialChessState[8][8] = {
-{   ChessPart(W,ROOK),	ChessPart(W,KNIGHT),ChessPart(W,BISHOP),ChessPart(W,KING),	ChessPart(W,QUEEN),	ChessPart(W,BISHOP),ChessPart(W,KNIGHT),ChessPart(W,ROOK) },
+{   ChessPart(W,ROOK),	ChessPart(W,KNIGHT),ChessPart(W,BISHOP),ChessPart(W,QUEEN),	ChessPart(W,KING),	ChessPart(W,BISHOP),ChessPart(W,KNIGHT),ChessPart(W,ROOK) },
 {	ChessPart(W,PAWN),	ChessPart(W,PAWN),	ChessPart(W,PAWN),	ChessPart(W,PAWN),	ChessPart(W,PAWN),	ChessPart(W,PAWN),	ChessPart(W,PAWN),	ChessPart(W,PAWN) },
 {	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY)},
 {	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY)},
 {	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY)},
 {	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY),	ChessPart(W,EMPTY)},
 {	ChessPart(B,PAWN),	ChessPart(B,PAWN),	ChessPart(B,PAWN),	ChessPart(B,PAWN),	ChessPart(B,PAWN),	ChessPart(B,PAWN),	ChessPart(B,PAWN),	ChessPart(B,PAWN) },
-{   ChessPart(B,ROOK),	ChessPart(B,KNIGHT),ChessPart(B,BISHOP),ChessPart(B,KING),	ChessPart(B,QUEEN),	ChessPart(B,BISHOP),ChessPart(B,KNIGHT),ChessPart(B,ROOK) },
+{   ChessPart(B,ROOK),	ChessPart(B,KNIGHT),ChessPart(B,BISHOP),ChessPart(B,QUEEN),	ChessPart(B,KING),	ChessPart(B,BISHOP),ChessPart(B,KNIGHT),ChessPart(B,ROOK) },
 };
 
 
