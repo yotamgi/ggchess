@@ -318,6 +318,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Common\EffectMesh.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Common\EffectMesh.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Common\fps.cpp"
 				>
 			</File>
@@ -354,6 +362,10 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath="..\effect.fx"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
