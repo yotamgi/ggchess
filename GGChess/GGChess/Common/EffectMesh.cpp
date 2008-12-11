@@ -78,7 +78,7 @@ bool StdEffectMesh::drawSubset(int subset) const {
 	m_effect->SetMatrix(m_ProjMatrixHandle, &proj);
 	m_effect->SetMatrix(m_WorldMatrixHandle, &world);
 
-	if (useTexure) { // if the subset is 0, draw all the subsets.
+	if (useTexure) { 
 
 		// set the texure for the subset
 		m_effect->SetTechnique(m_TechHandle);
