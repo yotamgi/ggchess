@@ -45,7 +45,8 @@ namespace d3d
 		const char *Name,							// [in]  The File name (.x)
 		ID3DXMesh **mesh,							// [out] The Mesh
 		std::vector<D3DMATERIAL9> *Mtrls,			// [out] The Mesh's Materials 
-		std::vector<IDirect3DTexture9*> *Textures);	// [out] The Mesh's Textures
+		std::vector<IDirect3DTexture9*> *Textures,	// [out] The Mesh's Textures
+		ID3DXBuffer **adjBuffer = NULL);			// [out] The mesh Adjacent buffer.
 
 	void ComputeNormal(D3DXVECTOR3 *p0, D3DXVECTOR3 *p1,	
 						D3DXVECTOR3 *p2, D3DXVECTOR3 *Out);

@@ -456,16 +456,24 @@ bool d3d::LoadX(IDirect3DDevice9 *Device,
 				const char *Name,
 				ID3DXMesh **Mesh,
 				std::vector<D3DMATERIAL9>       *Mtrls,
-				std::vector<IDirect3DTexture9*> *Textures )
+				std::vector<IDirect3DTexture9*> *Textures,
+				ID3DXBuffer **adjBuffer)
 {
 	USES_CONVERSION;
 	HRESULT hr = 0;
+	bool returnAdj;
+
+	if (adjBuffer == NULL) 	{
+		ID3DXBuffer* tmp;
+		adjBuffer = &tmp;
+		returnAdj = false;
+	} 
+	else returnAdj = true;
 
 	//
 	// Load the XFile data.
 	//
 
-	ID3DXBuffer* adjBuffer  = 0;
 	ID3DXBuffer* mtrlBuffer = 0;
 	DWORD        numMtrls   = 0;
 
@@ -473,7 +481,7 @@ bool d3d::LoadX(IDirect3DDevice9 *Device,
 		Name,
 		D3DXMESH_MANAGED,
 		Device,
-		&adjBuffer,
+		adjBuffer,
 		&mtrlBuffer,
 		0,
 		&numMtrls,
@@ -529,10 +537,11 @@ bool d3d::LoadX(IDirect3DDevice9 *Device,
 		D3DXMESHOPT_ATTRSORT |
 		D3DXMESHOPT_COMPACT  |
 		D3DXMESHOPT_VERTEXCACHE,
-		(DWORD*)adjBuffer->GetBufferPointer(),
+		(DWORD*)(*adjBuffer)->GetBufferPointer(),
 		0, 0, 0);
 
-	d3d::Release<ID3DXBuffer*>(adjBuffer); // done w/ buffer
+	if (returnAdj)
+		d3d::Release<ID3DXBuffer*>(*adjBuffer); // done w/ buffer
 
 	//
 	// Generating the VertexNomal - if it needed
