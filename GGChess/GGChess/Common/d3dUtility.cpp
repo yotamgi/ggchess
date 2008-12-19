@@ -457,18 +457,10 @@ bool d3d::LoadX(IDirect3DDevice9 *Device,
 				ID3DXMesh **Mesh,
 				std::vector<D3DMATERIAL9>       *Mtrls,
 				std::vector<IDirect3DTexture9*> *Textures,
-				ID3DXBuffer **adjBuffer)
+				ID3DXBuffer **adjBufferOut)
 {
 	USES_CONVERSION;
 	HRESULT hr = 0;
-	bool returnAdj;
-
-	if (adjBuffer == NULL) 	{
-		ID3DXBuffer* tmp;
-		adjBuffer = &tmp;
-		returnAdj = false;
-	} 
-	else returnAdj = true;
 
 	//
 	// Load the XFile data.
@@ -476,12 +468,13 @@ bool d3d::LoadX(IDirect3DDevice9 *Device,
 
 	ID3DXBuffer* mtrlBuffer = 0;
 	DWORD        numMtrls   = 0;
+	ID3DXBuffer* adjBuffer  = 0;
 
 	hr = D3DXLoadMeshFromXA(  
 		Name,
 		D3DXMESH_MANAGED,
 		Device,
-		adjBuffer,
+		&adjBuffer,
 		&mtrlBuffer,
 		0,
 		&numMtrls,
@@ -537,16 +530,17 @@ bool d3d::LoadX(IDirect3DDevice9 *Device,
 		D3DXMESHOPT_ATTRSORT |
 		D3DXMESHOPT_COMPACT  |
 		D3DXMESHOPT_VERTEXCACHE,
-		(DWORD*)(*adjBuffer)->GetBufferPointer(),
-		0, 0, 0);
+		(DWORD*)adjBuffer->GetBufferPointer(),
+		(DWORD*)adjBuffer->GetBufferPointer(), 0, 0);
 
-	if (returnAdj)
-		d3d::Release<ID3DXBuffer*>(*adjBuffer); // done w/ buffer
+	if (adjBufferOut != NULL) {
+		*adjBufferOut = adjBuffer;
+	} 
+	else d3d::Release<ID3DXBuffer*>(adjBuffer); // done w/ buffer
 
 	//
 	// Generating the VertexNomal - if it needed
 	//
-
 	if( !((*Mesh)->GetFVF() & D3DFVF_NORMAL) )
 	{
 		// - This Mesh Does'nt contain VertexNomals
@@ -557,11 +551,11 @@ bool d3d::LoadX(IDirect3DDevice9 *Device,
 			(*Mesh)->GetFVF() | D3DFVF_NORMAL,
 			Device, 
 			&TmpMesh);
-	
+
 		// Compute The Normals
 		D3DXComputeNormals(TmpMesh, 0);
+		(*Mesh)->Release();	
 		
-		(*Mesh)->Release();
 		Mesh = &TmpMesh;
 
 	} //**/

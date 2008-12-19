@@ -1,6 +1,9 @@
 
 #include "ChessBoard.h"
 
+#include "EdgeDetectionEffect.h"
+
+
 //////////////////////////////////////////////////////////////////////////
 // The Chess Object Class
 //
@@ -138,10 +141,16 @@ ChessBoard::~ChessBoard() {
 }
 
 void ChessBoard::init() {
+
+	ID3DXBuffer* adjBuff;
+
+	//D3DXCreateSphere(m_device, 100.0f, 100, 40, &m_chessMesh, &adjBuff);
+	//D3DXCreateTeapot(m_device,  &m_chessMesh, &adjBuff);
+
 	
 	d3d::LoadX(m_device, m_desc.XFileName.c_str(), &m_chessMesh, 
 										   &m_chessMtrls, 
-										   &m_chessTexs);
+										   &m_chessTexs, &adjBuff);
 
 	std::vector<IDirect3DTexture9*> textures;
 	for (unsigned int i=0; i<m_desc.TexturesFileNames.size(); i++){
@@ -160,12 +169,14 @@ void ChessBoard::init() {
 		for (int y=0; y<CHESS_DIMENTION_Y;y++) {
 			m_partsOnBoard[y][x] = NULL;
 		}
-	}
+	}//*/
 
-	m_effChessMesh = new d3d::StdEffectMesh(m_chessMesh, 
-											"..\\effect.fx", 
-											m_chessTexs);
-	m_effChessMesh->init(m_device);
+	//m_effChessMesh = new d3d::StdEffectMesh(m_chessMesh, 
+	//										"..\\effect.fx",
+	//										m_chessTexs);
+	m_effChessMesh = new EdgeDetectionEffect(m_chessMesh, adjBuff);
+
+	if (!m_effChessMesh->init(m_device))  exit(1);
 
 
 	// installize the parts
@@ -230,7 +241,7 @@ void ChessBoard::emphasys(int y, int x, bool e) const {
 
 void ChessBoard::draw(float timeDelta) const {
 
-	m_effChessMesh->setTechnique("FixedPipeline");
+	m_effChessMesh->setTechnique("SimpleVsTechnique");
 
 	m_board->drawWithEffect(timeDelta);
 
@@ -243,12 +254,11 @@ void ChessBoard::draw(float timeDelta) const {
 					m_effChessMesh->setTechnique("EmphasizedFixedPipeline");
 				else m_effChessMesh->setTechnique("FixedPipeline");
 
-				//m_partsOnBoard[y][x]->drawWithEffect(timeDelta, m_effect, 
-				//	m_WorldMatrixHandle, m_TexHandle);
 				m_partsOnBoard[y][x]->drawWithEffect(timeDelta); 
 			}
 		}
 	}
+	//m_effChessMesh->drawSubset(12);
 }
 
 void ChessBoard::drawSubsets(std::vector<int> subsets) {
