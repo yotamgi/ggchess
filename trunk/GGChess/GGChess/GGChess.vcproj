@@ -206,6 +206,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\EdgeDetectionEffect.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\IterableChess.cpp"
 				>
 			</File>
@@ -256,6 +260,14 @@
 				</File>
 				<File
 					RelativePath=".\IterableChess.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Effects"
+				>
+				<File
+					RelativePath=".\EdgeDetectionEffect.h"
 					>
 				</File>
 			</Filter>
@@ -362,6 +374,10 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath="..\EdgeDetection.fx"
+			>
+		</File>
 		<File
 			RelativePath="..\effect.fx"
 			>

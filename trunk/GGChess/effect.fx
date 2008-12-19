@@ -16,11 +16,12 @@ matrix ProjMatrix;
 
 texture Tex;
 
+vector lightDir = { -1.0f, -1.0f, -1.0f, 0.0f };
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Sampler
 //
-
 sampler S0 = sampler_state {
 	Texture = (Tex);
 	MinFilter = LINEAR;
@@ -36,20 +37,39 @@ sampler S0 = sampler_state {
 //
 // simple vertex shader
 //
-/*
+
 struct SimpleVS_INPUT {
 	vector position : POSITION;
 	vector normal	: NORMAL;
+	float2 texCoor	: TEXCOORD0;
 };
 
 struct SimpleVS_OUTPUT {
 	vector position : POSITION;
 	vector diffuse	: COLOR;
+	float2 texCoor	: TEXCOORD;
 };
 
-simpleVS_OUTPUT SimpleVS(simpleVS_INPUT input)
-*/
+SimpleVS_OUTPUT SimpleVS(SimpleVS_INPUT input) {
 
+	SimpleVS_OUTPUT output;
+	
+	// calculate the multipication of all the transform functions
+	matrix worldViewProj = mul(WorldMatrix, ViewMatrix);
+	worldViewProj= mul(worldViewProj, ProjMatrix);
+	
+	// transform the vertex
+	output.position = mul(input.position, worldViewProj);
+	
+	// calculate the diffse color
+	vector stam = { 0.5f, 0.5f, 0.5f, 0.0f }; 
+	output.diffuse = stam * dot(lightDir, -1*input.normal)/2.0f + stam/1.25;
+	
+	// pass the texure coordinates untouched
+	output.texCoor = input.texCoor;
+	
+	return output;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////
 // The Techniques
@@ -111,6 +131,7 @@ technique FixedPipeline
 		// Sampler
 		
 		Sampler[0] = (S0);	
+	
 	}
 }
 
@@ -165,3 +186,17 @@ technique EmphasizedFixedPipeline
 //
 // simple vertexShader technique
 //
+
+
+technique SimpleVsTechnique 
+{
+	pass P0 {
+	
+		// no shaders
+		VertexShader = compile vs_1_1 SimpleVS();
+		PixelShader  = null;
+		
+		Sampler[0] = (S0);	
+			
+	}
+}

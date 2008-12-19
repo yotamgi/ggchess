@@ -2,11 +2,10 @@
 #define __CHESS_BOARD__
 
 #include <string>
-#include "common\\d3dUtility.h"
+#include "common/d3dUtility.h"
 #include "common/EffectMesh.h"
 #include "BoardModelDescs.h"
 #include "common/D3dTextConsole.h"
-
 
 class ChessObject {
 public:
@@ -127,15 +126,8 @@ private:
 	std::vector<IDirect3DTexture9*> m_chessTexs;
 	d3d::IEffectMesh*				m_effChessMesh;
 
-	/** The lights */
-/*	D3DLIGHT9 normalLight;
-	D3DLIGHT9 enhancedLight;/**/
-
 	/** The Board Description struct, filled with data. */
 	const BoardDesc m_desc;
-
-//	/** The Effect File dat */
-//	ID3DXEffect* m_effect;
 
 	D3DXHANDLE m_RegTechHandle, m_EmphTechHandle;
 	D3DXHANDLE m_WorldMatrixHandle;

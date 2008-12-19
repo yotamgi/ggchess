@@ -21,6 +21,7 @@
 #include "ChessLogic.h"
 #include "IterableChess.h"
 #include "ChessGame.h"
+#include "ComputerChessPlayer.h"
 //
 // Globals
 //
@@ -181,12 +182,12 @@ bool Setup()
 	game = new ChessGame(board, Device);
 	game->init();
 
-	ChessGame::ChessUserPlayer* black = new ChessGame::ChessUserPlayer;
 	ChessGame::ChessUserPlayer* white = new ChessGame::ChessUserPlayer;
-	black->init(B);
+	ComputerChessPlayer* black = new ComputerChessPlayer;
 	white->init(W);
-	game->SetBlackPlayer(black);
+	black->init(B);
 	game->SetWhitePlayer(white);
+	game->SetBlackPlayer(black);
 	game->startGame();
 
 
